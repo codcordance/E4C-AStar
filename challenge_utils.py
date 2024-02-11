@@ -36,7 +36,7 @@ def build_training_data(hourly_data_path):
     dec = [] # daily energy consumption
     t_dec = []
 
-    time = hourly_data['datetime'].astype(np.datetime64).values.astype('datetime64[s]')
+    time = pd.to_datetime(hourly_data['datetime']).values.astype('datetime64[s]')
     power_consumption = hourly_data['kw_total_zone2'].values
 
     for ti, t in enumerate(time):
@@ -45,7 +45,7 @@ def build_training_data(hourly_data_path):
         if np.isclose(tmp_t.hour, 0) and np.isclose(tmp_t.minute, 0):
 
             day_end = np.datetime64(tmp_t + pd.Timedelta(days=1))
-            ind = np.where((tmp_t < time) & (time < day_end), True, False)
+            ind = np.where((time > tmp_t) & (time < day_end), True, False)
 
             if len(time[ind]) > 0 and not np.isnan(power_consumption[ind]).any():
                 t_dec.append(np.datetime64(tmp_t).astype('datetime64[s]'))
@@ -67,7 +67,8 @@ def build_training_data(hourly_data_path):
 
     for ti, t in enumerate(t_dec):
         tmp_t = pd.Timestamp(t)
-        ind = np.where((tmp_t - predictor_window <= time) & (time < tmp_t), True, False) # finding indices within the N prior days
+
+        ind = np.where((time >= tmp_t - predictor_window) & (time < tmp_t), True, False) # finding indices within the N prior days
 
         bad_ind = np.isnan(hourly_data.iloc[ind, 1::].values)
         if len(time[ind]) >= 24 * N and not bad_ind.any(): # rejecting any data with NaNs; useful for the student dataset
