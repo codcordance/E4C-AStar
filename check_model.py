@@ -19,10 +19,12 @@ D = 100 # can be variable
 x = np.ones((D, 4536)) # your model must accept a predictor array where the second dimension is 4704 (the first one can be variable)
 
 try:
-    y = load_onnx(Path(sys.argv[1]), x)
+    y = load_onnx("models/AStar-GradientBoost-Final.onnx", x)
     assert y.shape == np.zeros(D).shape, "Output shape does not match first dimension of input shape"
     print('Model works!')
 except:
     print('Model does not load and run given an input with proper size')
 
 
+
+#%%
